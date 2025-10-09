@@ -14,7 +14,7 @@ This is the public API. Use this to integrate Chip8 into an app.
 struct chip8_io
 {
     /* inputs */
-    uint16_t    keypad_state;
+    uint8_t     keypad_state[16];
     /* outputs */
     uint8_t     fbuff[CHIP8_SCREEN_WIDTH * CHIP8_SCREEN_HEIGHT];
     char        update_display;

@@ -73,6 +73,39 @@ op_Cxkk(struct chip8 *p, uint16_t opcode);
 void
 op_Dxyn(struct chip8 *p, uint16_t opcode);
 
+void
+op_EZZZ(struct chip8 *p, uint16_t opcode);
+
+void
+op_FZZZ(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx07(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx0A(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx15(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx18(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx1E(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx29(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx33(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx55(struct chip8 *p, uint16_t opcode);
+
+void
+op_Fx65(struct chip8 *p, uint16_t opcode);
+
 uint16_t
 fetch_opcode(struct chip8 *p);
 

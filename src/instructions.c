@@ -8,10 +8,25 @@
 /*
 Instruction descriptions are taken from Cowgod's
 Chip-8 Technical Reference v1.0 by Thomas P. Greene available at 
-https://devernay.free.fr/hacks/chip8/C8TECH10.HTM 
+http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 */
 
 /* Tables of function pointers to speed up instruction lookups */
+static void (*op_FZZZ_table[102])(struct chip8 *, uint16_t) = {
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, op_Fx07,
+    NULL, NULL, op_Fx0A, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, op_Fx15, NULL, NULL,
+    op_Fx18, NULL, NULL, NULL, NULL, NULL, op_Fx1E, NULL, 
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, op_Fx29, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, op_Fx33, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, op_Fx55, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, op_Fx65
+};
 
 static void (*op_8ZZZ_table[16])(struct chip8 *, uint16_t) = {
     op_8xy0, op_8xy1, op_8xy2, op_8xy3, 
@@ -24,7 +39,7 @@ static void (*opcode4_table[16])(struct chip8 *, uint16_t) = {
     op_0ZZZ, op_1nnn, op_2nnn, op_3xkk, 
     op_4xkk, op_5xy0, op_6xkk, op_7xkk,
     op_8ZZZ, op_9xy0, op_Annn, op_Bnnn,
-    op_Cxkk, op_Dxyn, 0, 0
+    op_Cxkk, op_Dxyn, op_EZZZ, op_FZZZ
 };
 
 void 
@@ -434,72 +449,210 @@ op_Dxyn(struct chip8 *p, uint16_t opcode)
     p->chip8_io.update_display = 1;
 }
 
-/*
-Ex9E - SKP Vx
-Skip next instruction if key with the value of Vx is pressed.
 
-Checks the keyboard, and if the key corresponding to the value of Vx is currently in the down position, PC is increased by 2.
-
-
-ExA1 - SKNP Vx
-Skip next instruction if key with the value of Vx is not pressed.
-
-Checks the keyboard, and if the key corresponding to the value of Vx is currently in the up position, PC is increased by 2.
+void
+op_EZZZ(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Ex9E - SKP Vx
+    Skip next instruction if key with the value of Vx is pressed.
+    Checks the keyboard, and if the key corresponding to the value of Vx
+    is currently in the down position, PC is increased by 2.
 
 
-Fx07 - LD Vx, DT
-Set Vx = delay timer value.
+    ExA1 - SKNP Vx
+    Skip next instruction if key with the value of Vx is not pressed.
+    Checks the keyboard, and if the key corresponding to the value of Vx
+    is currently in the up position, PC is increased by 2.
+    */
 
-The value of DT is placed into Vx.
+    uint8_t x, subcode;
+
+    x = (opcode & 0x0F00) >> 8;
+    subcode = opcode & 0x00FF;
+
+    /* only two subcodes, no need for a table */
+    if(subcode == 0x9E)
+    {
+        if (p->chip8_io.keypad_state[p->V[x]] == 1)
+        {
+            p->pc += 2;
+        }
+    }
+    else if (subcode == 0xA1)
+    {
+        if (p->chip8_io.keypad_state[p->V[x]] == 0)
+        {
+            p->pc += 2;
+        }
+    }
+}
+    
+void
+op_FZZZ(struct chip8 *p, uint16_t opcode)
+{
+    /* there are quite a few possible instructions */
+    /* so we use another table. */
+    uint8_t subcode;
+
+    subcode = opcode & 0x00FF;
+    op_FZZZ_table[subcode](p, opcode);
+}
+
+void
+op_Fx07(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx07 - LD Vx, DT
+    Set Vx = delay timer value.
+    The value of DT is placed into Vx.
+    */
+    
+    uint8_t x;
+
+    x = (opcode & 0x0F00) >> 8;
+    p->V[x] = p->delay_timer;
+}
+
+void
+op_Fx0A(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx0A - LD Vx, K
+    Wait for a key press, store the value of the key in Vx.
+    All execution stops until a key is pressed, then the value
+    of that key is stored in Vx.
+    */
+
+    uint8_t x;
+
+    x = (opcode & 0x0F00) >> 8;
+         (void)x;
+    (void)p;
+}
+
+void
+op_Fx15(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx15 - LD DT, Vx
+    Set delay timer = Vx.
+    DT is set equal to the value of Vx.
+    */
+
+    uint8_t x;
+
+    x = (opcode & 0x0F00) >> 8;
+    p->delay_timer = p->V[x];
+}
 
 
-Fx0A - LD Vx, K
-Wait for a key press, store the value of the key in Vx.
+void
+op_Fx18(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx18 - LD ST, Vx
+    Set sound timer = Vx.
+    ST is set equal to the value of Vx.
+    */
 
-All execution stops until a key is pressed, then the value of that key is stored in Vx.
+    uint8_t x;
 
+    x = (opcode & 0x0F00) >> 8;
+    p->sound_timer = p->V[x];
+}
 
-Fx15 - LD DT, Vx
-Set delay timer = Vx.
+void
+op_Fx1E(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx1E - ADD I, Vx
+    Set I = I + Vx.
+    The values of I and Vx are added, and the results are stored in I.
+    */
 
-DT is set equal to the value of Vx.
+    uint8_t x;
 
+    x = (opcode & 0x0F00) >> 8;
+    p->I = p->I + p->V[x];
+}
 
-Fx18 - LD ST, Vx
-Set sound timer = Vx.
+void
+op_Fx29(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx29 - LD F, Vx
+    Set I = location of sprite for digit Vx.
+    The value of I is set to the location for the hexadecimal sprite
+    corresponding to the value of Vx. See section 2.4, Display, for
+    more information on the Chip-8 hexadecimal font.
 
-ST is set equal to the value of Vx.
+    fonts are stored in memory from 0x0000 to 0x0080
+    Each character is comprised of 5 bytes, thus the address is simply
+    Vx times 5
+    */
 
+    uint8_t x;
 
-Fx1E - ADD I, Vx
-Set I = I + Vx.
+    x = (opcode & 0x0F00) >> 8;
+    p->I = FONT_START_ADDRESS + p->V[x] * 5;
+}
 
-The values of I and Vx are added, and the results are stored in I.
+void
+op_Fx33(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx33 - LD B, Vx
+    Store BCD representation of Vx in memory locations I, I+1, and I+2.
+    The interpreter takes the decimal value of Vx, and places the hundreds
+    digit in memory at location in I, the tens digit at location I+1, and
+    the ones digit at location I+2.
+    */
 
+    uint8_t x;
 
-Fx29 - LD F, Vx
-Set I = location of sprite for digit Vx.
+    x = (opcode & 0x0F00) >> 8;
+    (void)x;
+    (void)p;
+}
 
-The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx. See section 2.4, Display, for more information on the Chip-8 hexadecimal font.
+void
+op_Fx55(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx55 - LD [I], Vx
+    Store registers V0 through Vx in memory starting at location I.
+    The interpreter copies the values of registers V0 through Vx into memory,
+    starting at the address in I.
+    */
 
+    uint8_t x, n;
 
-Fx33 - LD B, Vx
-Store BCD representation of Vx in memory locations I, I+1, and I+2.
+    x = (opcode & 0x0F00) >> 8;
+    for(n=0; n<x+1; n++)
+    {
+        p->mem[p->I + n] = p->V[n];
+    }
+}
 
-The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.
+void
+op_Fx65(struct chip8 *p, uint16_t opcode)
+{
+    /*
+    Fx65 - LD Vx, [I]
+    Read registers V0 through Vx from memory starting at location I.
+    The interpreter reads values from memory starting at location I into 
+    registers V0 through Vx.
+    */
 
+    uint8_t x, n;
 
-Fx55 - LD [I], Vx
-Store registers V0 through Vx in memory starting at location I.
-
-The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
-
-
-Fx65 - LD Vx, [I]
-Read registers V0 through Vx from memory starting at location I.
-
-The interpreter reads values from memory starting at location I into registers V0 through Vx.
-*/
+    x = (opcode & 0x0F00) >> 8;
+    for(n=0; n<x+1; n++)
+    {
+        p->V[n] = p->mem[p->I + n];
+    }
+}
 
 uint16_t
 fetch_opcode(struct chip8 *p)

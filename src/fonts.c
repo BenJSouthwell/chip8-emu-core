@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "fonts.h"
 
 const uint8_t fontset[FONTSET_SIZE] = {

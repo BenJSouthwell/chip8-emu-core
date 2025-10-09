@@ -7,7 +7,7 @@
 #include "instructions.h"
  
 struct chip8 *
-initialise_chip8()
+initialise_chip8(void)
 {
     struct chip8 * p;
     p = calloc(1, sizeof(struct chip8));

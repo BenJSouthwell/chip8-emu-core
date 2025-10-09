@@ -25,7 +25,7 @@ struct chip8_io
 Initialise a chip8 emulator.
 */
 struct chip8 *
-initialise_chip8();
+initialise_chip8(void);
 
 /* 
 Get a pointer to the output state

@@ -70,5 +70,3 @@ free_chip8(struct chip8 * p)
     free(p);
     return;
 }
-
- 

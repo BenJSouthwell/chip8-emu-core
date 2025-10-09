@@ -11,7 +11,7 @@ Chip-8 Technical Reference v1.0 by Thomas P. Greene available at
 http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 */
 
-// Tables of function pointers to speed up instruction lookups
+// Tables of function pointers to speed up instruction lookups  
 
 static void (*op_8ZZZ_table[16])(struct chip8 *, uint16_t) = {
     op_8xy0, op_8xy1, op_8xy2, op_8xy3, 
@@ -254,12 +254,9 @@ op_8xy4(struct chip8 *p, uint16_t opcode)
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
 
-    if (p->V[x] > (255 - p->V[y]))
-    {
-        // then we have overflow
-        // so we set the carry bit high
-        p->V[0xF] = 1; 
-    }
+    /* set the overflow bit */
+    p->V[0xF] = p->V[x] > (255 - p->V[y]) ? 1 : 0;
+
     p->V[x] = p->V[x] + p->V[y];
 }
 

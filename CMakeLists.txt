@@ -20,7 +20,7 @@ target_include_directories(chip8emu_lib PUBLIC include)
 if(MSVC)
     target_compile_options(chip8emu_lib PRIVATE /W4)
 else()
-    target_compile_options(chip8emu_lib PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(chip8emu_lib PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
 
 # example frontend that just renders to console

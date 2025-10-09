@@ -24,5 +24,7 @@ else()
 endif()
 
 # example frontend that just renders to console
-add_executable(chip8emu frontends/main.c)
-target_link_libraries(chip8emu PRIVATE chip8emu_lib)
+if (NOT MSVC)
+    add_executable(chip8emu frontends/main.c)
+    target_link_libraries(chip8emu PRIVATE chip8emu_lib)
+endif()

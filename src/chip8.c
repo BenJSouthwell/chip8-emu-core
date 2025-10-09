@@ -4,6 +4,7 @@
 
 #include "chip8.h"
 #include "chip8_priv.h"
+#include "fonts.h"
 #include "instructions.h"
  
 struct chip8 *
@@ -15,6 +16,8 @@ initialise_chip8(void)
     p->pc = PROGRAM_START_ADDRESS;
     p->chip8_io.buzzer_active = 0;
     p->chip8_io.update_display = 0;
+    /* copy font into memory */
+    memcpy(&p->mem[FONT_START_ADDRESS], fontset, FONTSET_SIZE*sizeof(uint8_t));
     return p;
 }
 
@@ -33,8 +36,8 @@ load_rom_chip8(struct chip8 * p, uint8_t * data, uint16_t num_bytes)
         return 1;
     }
     
-    /* nuke the chip8 memory ? */
-    memset(p->mem, 0, CHIP8_MEM_SIZE_BYTES);
+    /* zero the old ROM data, if any */
+    memset(&p->mem[PROGRAM_START_ADDRESS], 0, MAX_ROM_SIZE);
 
     /* now copy in the ROM data */
     memcpy(&p->mem[PROGRAM_START_ADDRESS], data, num_bytes);

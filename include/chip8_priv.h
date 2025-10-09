@@ -11,6 +11,7 @@ The API required to integrate the CHIP8 emulator into an app
 
 #define CHIP8_MEM_SIZE_BYTES (4096)
 #define PROGRAM_START_ADDRESS (0x200)
+#define FONT_START_ADDRESS (0x0000)
 
 struct chip8
 {

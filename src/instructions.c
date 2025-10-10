@@ -394,12 +394,11 @@ op_Cxkk(struct chip8 *p, uint16_t opcode)
     /* which is then ANDed with the value kk. The results are */
     /* stored in Vx. See instruction 8xy2 for more information on AND. */
 
-    uint8_t x, kk, random;
+    uint8_t x, kk;
 
     kk = (opcode & 0x00FF);
     x = (opcode & 0x0F00) >> 8;
-    random = 42; /* TODO */
-    p->V[x] = kk & random;
+    p->V[x] = kk & p->rnd;
 }
 
 void

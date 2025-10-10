@@ -18,6 +18,8 @@ initialise_chip8(void)
     p->chip8_io.update_display = 0;
     /* copy font into memory */
     memcpy(&p->mem[FONT_START_ADDRESS], fontset, FONTSET_SIZE*sizeof(uint8_t));
+    /* initialise the random number generator */
+    p->prng = initialise_lfsr_prng(0, 0);
     return p;
 }
 
@@ -55,6 +57,9 @@ execute_cycle_chip8(struct chip8 *p)
     void (*fn)(struct chip8 *, uint16_t);
 
     p->chip8_io.update_display = 0;
+
+    /* update internal random number generator */
+    p->rnd = lfsr_prng_process(p->prng);
 
     /* Grab the next opcode in the ROM. This is a 16bit chunk of data */
     opcode = fetch_opcode(p);

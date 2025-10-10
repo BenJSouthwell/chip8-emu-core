@@ -8,6 +8,7 @@ The API required to integrate the CHIP8 emulator into an app
 #include <stdint.h>
 
 #include "chip8.h"
+#include "prng.h"
 
 #define CHIP8_MEM_SIZE_BYTES (4096)
 #define PROGRAM_START_ADDRESS (0x200)
@@ -25,6 +26,8 @@ struct chip8
     uint16_t    stack[16];                  /* the stack */
     uint8_t     sp;                         /* stack pointer (note we only use the lower 4 bits) */
     /* emulator state */
+    struct lfsr_prng * prng;                /* random number generator */
+    uint8_t            rnd;                 /* random number updates each cycle*/
     char waiting_for_key; /* execution of the program is halted */
     /* externally accessible IO (frambuffer, keypad etc) */
     struct chip8_io chip8_io;

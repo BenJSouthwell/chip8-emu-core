@@ -1,5 +1,5 @@
-#ifndef FONTS_H
-#define FONTS_H
+#ifndef CHIP8_FONTS_H
+#define CHIP8_FONTS_H
 
 #include <stdint.h>
 
@@ -7,4 +7,4 @@
 
 extern const uint8_t fontset[FONTSET_SIZE];
 
-#endif /* FONTS_H */
+#endif /* CHIP8_FONTS_H */

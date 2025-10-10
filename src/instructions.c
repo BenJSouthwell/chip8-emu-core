@@ -608,11 +608,23 @@ op_Fx33(struct chip8 *p, uint16_t opcode)
     the ones digit at location I+2.
     */
 
-    uint8_t x;
+    uint8_t x, s;
 
     x = (opcode & 0x0F00) >> 8;
-    (void)x;
-    (void)p;
+    s = p->V[x];
+    p->mem[p->I + 0] = 0;
+    p->mem[p->I + 1] = 0;
+    while(s > 100)
+    {
+        p->mem[p->I + 0] ++;
+        s -= 100;
+    }
+    while(s > 10)
+    {
+        p->mem[p->I + 1] ++;
+        s -= 10;
+    }
+    p->mem[p->I + 2] = s;
 }
 
 void

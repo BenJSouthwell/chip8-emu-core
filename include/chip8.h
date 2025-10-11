@@ -11,6 +11,18 @@ This is the public API. Use this to integrate Chip8 into an app.
 #define CHIP8_SCREEN_HEIGHT (32)
 #define MAX_ROM_SIZE (3584) /* 4096 - 512 (0x200) */
 
+enum chip8_clock
+{
+    CHIP8_CLOCK_RATE_300Hz = 5,
+    CHIP8_CLOCK_RATE_360Hz = 6,
+    CHIP8_CLOCK_RATE_420Hz = 7,
+    CHIP8_CLOCK_RATE_480Hz = 8,
+    CHIP8_CLOCK_RATE_540Hz = 9,
+    CHIP8_CLOCK_RATE_600Hz = 10,
+    CHIP8_CLOCK_RATE_660Hz = 11,
+    CHIP8_CLOCK_RATE_720Hz = 12
+};
+
 struct chip8_io
 {
     /* inputs */
@@ -25,7 +37,7 @@ struct chip8_io
 Initialise a chip8 emulator.
 */
 struct chip8 *
-initialise_chip8(void);
+initialise_chip8(enum chip8_clock clock);
 
 /* 
 Get a pointer to the output state
@@ -47,8 +59,5 @@ execute_cycle_chip8(struct chip8 *p);
 
 void 
 free_chip8(struct chip8 *p);
-
-void 
-keypad_input_chip8(struct chip8 *p, uint16_t keypad_state);
 
 #endif /* CHIP8_H */

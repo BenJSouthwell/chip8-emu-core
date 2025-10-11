@@ -521,13 +521,17 @@ op_Fx0A(struct chip8 *p, uint16_t opcode)
     Wait for a key press, store the value of the key in Vx.
     All execution stops until a key is pressed, then the value
     of that key is stored in Vx.
+
+    In this implementation, we will not block the host application.
+    So we can't wait here. That means, we need to store x somewhere.
+    Does this also mean, we need to store state and look for rising edges?
     */
 
     uint8_t x;
 
     x = (opcode & 0x0F00) >> 8;
-         (void)x;
-    (void)p;
+    p->waiting_for_key = 1;
+    p->key_x = x;
 }
 
 void

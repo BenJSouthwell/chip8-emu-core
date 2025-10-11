@@ -8,7 +8,7 @@
 #include "instructions.h"
  
 struct chip8 *
-initialise_chip8(void)
+initialise_chip8(enum chip8_clock clock)
 {
     struct chip8 * p;
     p = calloc(1, sizeof(struct chip8));
@@ -16,6 +16,8 @@ initialise_chip8(void)
     p->pc = PROGRAM_START_ADDRESS;
     p->chip8_io.buzzer_active = 0;
     p->chip8_io.update_display = 0;
+    /* the value of the clock enum is the timer clock divider */
+    p->timer_clock_div = clock;
     /* copy font into memory */
     memcpy(&p->mem[FONT_START_ADDRESS], fontset, FONTSET_SIZE*sizeof(uint8_t));
     /* initialise the random number generator */
@@ -47,14 +49,53 @@ load_rom_chip8(struct chip8 * p, uint8_t * data, uint16_t num_bytes)
     return 0;
 }
 
-
+static
+void
+update_timers(struct chip8 *p)
+{
+    p->tick += 1;
+    if(p->tick % p->timer_clock_div != 0)
+    {
+        return;
+    }
+    p->tick = 0;
+    if(p->sound_timer > 0)
+    {
+        p->sound_timer --;
+    } 
+    if(p->delay_timer > 0)
+    {
+        p->delay_timer --;
+    }
+}
 
 void
 execute_cycle_chip8(struct chip8 *p)
 {
+    uint8_t n;
     uint16_t opcode;
 
     void (*fn)(struct chip8 *, uint16_t);
+
+    if(p->waiting_for_key == 1)
+    {
+        /* check to see if there is a key press */
+        for (n=0; n<16; n++)
+        {
+            if(p->chip8_io.keypad_state[n] == 1)
+            {
+                p->V[p->key_x] = n;
+                p->waiting_for_key = 0;
+                break;
+            }
+        }
+        /* no key press so we do not continue*/
+        if(p->waiting_for_key == 1)
+        {
+            update_timers(p);
+            return;
+        }
+    }
 
     p->chip8_io.update_display = 0;
 
@@ -70,6 +111,10 @@ execute_cycle_chip8(struct chip8 *p)
     /* Now, execute the instruction as we have the opcode (which still contains the variable part)
        decoded instruction */
     fn(p, opcode);
+
+    update_timers(p);
+
+    return;
 }
 
 void 

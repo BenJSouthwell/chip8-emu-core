@@ -25,10 +25,13 @@ struct chip8
     uint8_t     sound_timer;
     uint16_t    stack[16];                  /* the stack */
     uint8_t     sp;                         /* stack pointer (note we only use the lower 4 bits) */
-    /* emulator state */
+    /* emulator state */ 
+    uint8_t    tick;                        /* keep track of ticks for clock division */
+    uint8_t    timer_clock_div;             /* clock divider to run the timers at*/
     struct lfsr_prng * prng;                /* random number generator */
     uint8_t            rnd;                 /* random number updates each cycle*/
-    char waiting_for_key; /* execution of the program is halted */
+    char waiting_for_key;                   /* execution of the program is halted */
+    uint8_t            key_x;               /**/
     /* externally accessible IO (frambuffer, keypad etc) */
     struct chip8_io chip8_io;
 };

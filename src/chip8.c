@@ -74,8 +74,9 @@ execute_cycle_chip8(struct chip8 *p)
 {
     uint8_t n;
     uint16_t opcode;
-
     void (*fn)(struct chip8 *, uint16_t);
+
+    p->chip8_io.update_display = 0;
 
     if(p->waiting_for_key == 1)
     {
@@ -96,8 +97,6 @@ execute_cycle_chip8(struct chip8 *p)
             return;
         }
     }
-
-    p->chip8_io.update_display = 0;
 
     /* update internal random number generator */
     p->rnd = lfsr_prng_process(p->prng);

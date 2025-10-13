@@ -62,7 +62,12 @@ update_timers(struct chip8 *p)
     if(p->sound_timer > 0)
     {
         p->sound_timer --;
-    } 
+        p->chip8_io.buzzer_active = 1;
+    }
+    else
+    {
+        p->chip8_io.buzzer_active = 0;
+    }
     if(p->delay_timer > 0)
     {
         p->delay_timer --;

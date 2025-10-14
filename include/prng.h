@@ -15,4 +15,7 @@ initialise_lfsr_prng(uint32_t seed, uint32_t polynomial);
 uint8_t
 lfsr_prng_process(struct lfsr_prng *p);
 
+void 
+free_lfsr_prng(struct lfsr_prng *p);
+
 #endif /* CHIP8_PRNG_H */

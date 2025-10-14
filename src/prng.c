@@ -51,3 +51,9 @@ lfsr_prng_process(struct lfsr_prng * p)
     }
     return (uint8_t) (p->buff & 0x000000FF);
 }
+
+void 
+free_lfsr_prng(struct lfsr_prng *p)
+{
+    free(p);
+}

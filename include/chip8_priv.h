@@ -32,8 +32,8 @@ struct chip8
     uint8_t            rnd;                 /* random number updates each cycle*/
     char waiting_for_key;                   /* execution of the program is halted */
     uint8_t            key_x;               /**/
-    /* externally accessible IO (frambuffer, keypad etc) */
+    /* externally accessible IO (frambuffer, buzzer, keypad etc) */
     struct chip8_io chip8_io;
 };
 
-#endif /* CHIP8_H */
+#endif /* CHIP8_PRIV_H */

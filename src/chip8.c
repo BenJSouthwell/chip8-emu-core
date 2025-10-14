@@ -12,6 +12,10 @@ initialise_chip8(enum chip8_clock clock)
 {
     struct chip8 * p;
     p = calloc(1, sizeof(struct chip8));
+    if (p == NULL)
+    {
+        return NULL;
+    }
     /* initialise the program counter to the start address */
     p->pc = PROGRAM_START_ADDRESS;
     p->chip8_io.buzzer_active = 0;
@@ -28,12 +32,20 @@ initialise_chip8(enum chip8_clock clock)
 struct chip8_io *
 get_io_chip8(struct chip8 *p)
 {
+    if (p == NULL)
+    {
+        return NULL;
+    }
     return &p->chip8_io;
 }
 
 int 
 load_rom_chip8(struct chip8 * p, uint8_t * data, uint16_t num_bytes)
 {	
+    if(p == NULL || data == NULL || num_bytes == 0)
+    {
+        return 1;
+    }
     if (num_bytes > MAX_ROM_SIZE)
     {
         fprintf(stderr, "ROM is %d bytes, maximum size is %d bytes\n", num_bytes, MAX_ROM_SIZE);
@@ -53,6 +65,10 @@ static
 void
 update_timers(struct chip8 *p)
 {
+    if(p == NULL)
+    {
+        return;
+    }
     p->tick += 1;
     if(p->tick % p->timer_clock_div != 0)
     {
@@ -80,6 +96,11 @@ execute_cycle_chip8(struct chip8 *p)
     uint8_t n;
     uint16_t opcode;
     void (*fn)(struct chip8 *, uint16_t);
+
+    if(p==NULL)
+    {
+        return;
+    }
 
     p->chip8_io.update_display = 0;
 
@@ -115,7 +136,7 @@ execute_cycle_chip8(struct chip8 *p)
     /* Now, execute the instruction as we have the opcode (which still contains the variable part)
        decoded instruction */
     fn(p, opcode);
-
+    
     update_timers(p);
 
     return;
@@ -124,6 +145,7 @@ execute_cycle_chip8(struct chip8 *p)
 void 
 free_chip8(struct chip8 * p)
 {
+    free_lfsr_prng(p->prng);
     free(p);
     return;
 }

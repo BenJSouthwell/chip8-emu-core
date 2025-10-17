@@ -57,7 +57,7 @@ main(int argc, char* argv[])
             key = get_chip8_key(ch) ;
             if (key >= 0)
             {
-                chip8_io->keypad_state[key] = 1;
+                chip8_io->keypad_state[key] = 3;
             }
             else if (ch == 27)
             {
@@ -99,7 +99,10 @@ main(int argc, char* argv[])
         if(chip8_io->update_display)
         {
             draw_basic_display(chip8_io, 1, 2);
-            memset(chip8_io->keypad_state, 0, 16*sizeof(uint8_t));
+            for(i=0; i<16; i++)
+            {
+                chip8_io->keypad_state[i] = chip8_io->keypad_state[i] > 0 ? chip8_io->keypad_state[i] - 1 : 0;
+            }
             refresh(); 
         }
              

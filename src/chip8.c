@@ -136,10 +136,21 @@ execute_cycle_chip8(struct chip8 *p)
     /* Now, execute the instruction as we have the opcode (which still contains the variable part)
        decoded instruction */
     fn(p, opcode);
-    
+
     update_timers(p);
 
     return;
+}
+
+int 
+change_clock_rate_chip8(struct chip8 *p, enum chip8_clock clock)
+{
+    if (p == NULL || clock < CHIP8_CLOCK_RATE_300Hz || clock > CHIP8_CLOCK_RATE_900Hz)
+    {
+        return 1;
+    }
+    p->timer_clock_div = clock;
+    return 0;
 }
 
 void 

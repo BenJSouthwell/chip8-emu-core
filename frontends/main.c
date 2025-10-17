@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #include <ncurses.h> 
 # include "locale.h"
@@ -15,12 +16,15 @@ int
 main(int argc, char* argv[])
 {
     struct chip8 * p;
+    enum chip8_clock clock_rate;
     struct chip8_io * chip8_io;
     struct rom * r;
     int i, ch, key, k;
     useconds_t sleep_time;
 
-    sleep_time = 1667; /* 600 Hz */
+    /* the value of this enum is clock / 60 (used as the clock_rate divider) */
+    clock_rate = CHIP8_CLOCK_RATE_600Hz; 
+    sleep_time = (int)floorf(1000000.0f / (clock_rate * 60.0f)); 
 
     initscr(); 
     cbreak();   
@@ -29,7 +33,7 @@ main(int argc, char* argv[])
     nodelay(stdscr, TRUE);
 
     attron(A_BOLD);
-    mvprintw(0, 0, "CHIP-8 Emulator - 600Hz CPU. Press ESC to quit.");
+    mvprintw(0, 0, "CHIP-8 Emulator - %.0f Hz CPU. Press ESC to quit. Press +/- to change clock rate.", clock_rate * 60.0f);
     attroff(A_BOLD);
     setlocale(LC_ALL, "en-US.UTF-8");
 
@@ -39,15 +43,15 @@ main(int argc, char* argv[])
         exit(1);
     }
     
-    p = initialise_chip8(CHIP8_CLOCK_RATE_600Hz);
+    p = initialise_chip8(clock_rate);
     chip8_io = get_io_chip8(p);
     r = read_rom(argv[1]);
     load_rom_chip8(p, r->data, r->num_bytes);
 
     for(;;)
     {
+        /* get and handle any keyboard input */
         ch = getch();
-        
         if (ch != ERR) {
             // map the key to the CHIP8 Keypad
             key = get_chip8_key(ch) ;
@@ -59,19 +63,46 @@ main(int argc, char* argv[])
             {
                 /*escape key pressed */
                 break; 
-            }     
+            }
+            else if (ch == 43 || ch == 61)
+            {
+                /* '=' or '+' key pressed */
+                if(clock_rate < CHIP8_CLOCK_RATE_900Hz)
+                {
+                    clock_rate += 1;
+                    sleep_time = (int)floorf(1000000.0f / (clock_rate * 60.0f));
+                    attron(A_BOLD);
+                    mvprintw(0, 0, "CHIP-8 Emulator - %.0f Hz CPU. Press ESC to quit. Press +/- to change clock rate.", clock_rate * 60.0f);
+                    attroff(A_BOLD);
+                    refresh(); 
+                }
+            }
+            else if (ch == 45 || ch == 95)
+            {
+                /* '-' or '_' key pressed */
+                if(clock_rate > CHIP8_CLOCK_RATE_300Hz)
+                {
+                    clock_rate -= 1;
+                    sleep_time = (int)floorf(1000000.0f / (clock_rate * 60.0f));
+                    attron(A_BOLD);
+                    mvprintw(0, 0, "CHIP-8 Emulator - %.0f Hz CPU. Press ESC to quit. Press +/- to change clock rate.", clock_rate * 60.0f);
+                    attroff(A_BOLD);
+                    refresh(); 
+                }
+            }
         }
 
         /* Fetch, decode and execute an instruction */
         execute_cycle_chip8(p);
-
+        
+        /* if the emulator has drawn to or cleared the display, we update it*/
         if(chip8_io->update_display)
         {
             draw_basic_display(chip8_io, 1, 2);
-            refresh(); 
             memset(chip8_io->keypad_state, 0, 16*sizeof(uint8_t));
+            refresh(); 
         }
-  
+             
         if(chip8_io->buzzer_active)
         {
             beep();

@@ -20,7 +20,10 @@ enum chip8_clock
     CHIP8_CLOCK_RATE_540Hz = 9,
     CHIP8_CLOCK_RATE_600Hz = 10,
     CHIP8_CLOCK_RATE_660Hz = 11,
-    CHIP8_CLOCK_RATE_720Hz = 12
+    CHIP8_CLOCK_RATE_720Hz = 12,
+    CHIP8_CLOCK_RATE_780Hz = 13,
+    CHIP8_CLOCK_RATE_840Hz = 14,
+    CHIP8_CLOCK_RATE_900Hz = 15
 };
 
 struct chip8_io
@@ -56,6 +59,9 @@ Run a single fetch, decode, execute cyle
 */
 void
 execute_cycle_chip8(struct chip8 *p);
+
+int 
+change_clock_rate_chip8(struct chip8 *p, enum chip8_clock clock);
 
 void 
 free_chip8(struct chip8 *p);

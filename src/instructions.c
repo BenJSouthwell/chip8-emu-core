@@ -590,12 +590,12 @@ op_Fx33(struct chip8 *p, uint16_t opcode)
     s = p->V[x];
     p->mem[p->I + 0] = 0;
     p->mem[p->I + 1] = 0;
-    while(s > 100)
+    while(s >= 100)
     {
         p->mem[p->I + 0] ++;
         s -= 100;
     }
-    while(s > 10)
+    while(s >= 10)
     {
         p->mem[p->I + 1] ++;
         s -= 10;

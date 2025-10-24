@@ -21,6 +21,10 @@ initialise_lfsr_prng(uint32_t seed, uint32_t polynomial)
 {
     struct lfsr_prng * p;
     p = calloc(1, sizeof(struct lfsr_prng));
+    if (p == NULL)
+    {
+        return NULL;
+    }
     if (seed == 0)
     {
         p->buff = 0x8FF00F00;
@@ -43,7 +47,12 @@ initialise_lfsr_prng(uint32_t seed, uint32_t polynomial)
 uint8_t
 lfsr_prng_process(struct lfsr_prng * p)
 {
-    uint32_t lsb = p->buff & 0x0001;
+    uint32_t lsb;
+    if (p == NULL)
+    {
+        return 0;
+    }
+    lsb = p->buff & 0x0001;
     p->buff = p->buff >> 1;
     if (lsb)
     {
@@ -55,5 +64,8 @@ lfsr_prng_process(struct lfsr_prng * p)
 void 
 free_lfsr_prng(struct lfsr_prng *p)
 {
-    free(p);
+    if (p != NULL)
+    {
+        free(p);
+    }
 }

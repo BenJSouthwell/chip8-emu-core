@@ -212,12 +212,17 @@ op_8xy1(struct chip8 *p, uint16_t opcode)
        Performs a bitwise OR on the values of Vx and Vy, 
        then stores the result in Vx. A bitwise OR compares the 
        corrseponding bits from two values, and if either bit is 1, 
-       then the same bit in the result is also 1. Otherwise, it is 0. */
+       then the same bit in the result is also 1. Otherwise, it is 0. 
+       
+       https://github.com/Timendus/chip8-test-suite
+       indicates that the flag register V[F] should be reset by this instruction (see 4-flags.ch8)
+       */
 
     uint8_t x, y;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
+    p->V[0xF] = 0;
     p->V[x] = p->V[x] | p->V[y];
  }
 
@@ -229,12 +234,17 @@ op_8xy2(struct chip8 *p, uint16_t opcode)
        Performs a bitwise AND on the values of Vx and Vy, 
        then stores the result in Vx. A bitwise AND compares the 
        corrseponding bits from two values, and if both bits are 1, 
-       then the same bit in the result is also 1. Otherwise, it is 0. */
+       then the same bit in the result is also 1. Otherwise, it is 0. 
+       
+       https://github.com/Timendus/chip8-test-suite
+       indicates that the flag register V[F] should be reset by this instruction (see 4-flags.ch8)
+       */
 
     uint8_t x, y;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
+    p->V[0xF] = 0;
     p->V[x] = p->V[x] & p->V[y];
 }
 
@@ -247,12 +257,17 @@ op_8xy3(struct chip8 *p, uint16_t opcode)
        then stores the result in Vx. An exclusive OR compares the 
        corrseponding bits from two values, and if the bits are not 
        both the same, then the corresponding bit in the result is 
-       set to 1. Otherwise, it is 0. */
+       set to 1. Otherwise, it is 0. 
+       
+       https://github.com/Timendus/chip8-test-suite
+       indicates that the flag register V[F] should be reset by this instruction (see 4-flags.ch8)
+       */
 
     uint8_t x, y;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
+    p->V[0xF] = 0;
     p->V[x] = p->V[x] ^ p->V[y];
 }
 
@@ -263,14 +278,19 @@ op_8xy4(struct chip8 *p, uint16_t opcode)
        Set Vx = Vx + Vy, set VF = carry. 
        The values of Vx and Vy are added together. If the result is 
        greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0. 
-       Only the lowest 8 bits of the result are kept, and stored in Vx. */
+       Only the lowest 8 bits of the result are kept, and stored in Vx.
+       
+       We need to be careful to not set the V[0xF] register before we read from 
+       V[x] and V[y] because x or y could be 0xF - that is the math could be 
+       looking at the carry (borrow) flag*/
 
-    uint8_t x, y;
+    uint8_t x, y, carry;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
-    p->V[0xF] = p->V[x] > (255 - p->V[y]) ? 1 : 0;
+    carry = p->V[x] > (255 - p->V[y]) ? 1 : 0;
     p->V[x] = p->V[x] + p->V[y];
+    p->V[0xF] = carry;
 }
 
 void
@@ -278,15 +298,16 @@ op_8xy5(struct chip8 *p, uint16_t opcode)
 {
     /* 8xy5 - SUB Vx, Vy 
        Set Vx = Vx - Vy, set VF = NOT borrow. 
-       If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is 
+       If Vx >= Vy, then VF is set to 1, otherwise 0. Then Vy is 
        subtracted from Vx, and the results stored in Vx. */
 
-    uint8_t x, y;
+    uint8_t x, y, not_borrow;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
-    p->V[0xF] = p->V[x] > p->V[y] ? 1 : 0;
+    not_borrow = p->V[x] >= p->V[y] ? 1 : 0;
     p->V[x] = p->V[x] - p->V[y];
+    p->V[0xF] = not_borrow;
 }
 
 void
@@ -295,13 +316,22 @@ op_8xy6(struct chip8 *p, uint16_t opcode)
     /* 8xy6 - SHR Vx {, Vy} 
        Set Vx = Vx SHR 1. 
        If the least-significant bit of Vx is 1, then VF is set 
-       to 1, otherwise 0. Then Vx is divided by 2. */
+       to 1, otherwise 0. Then Vx is divided by 2. 
+       
+       From https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#8xy6-and-8xye-shift
+       In the CHIP-8 interpreter for the original COSMAC VIP, this instruction did the following:
+       It put the value of VY into VX, and then shifted the value in VX 1 bit to the right (8XY6) 
+       or left (8XYE). VY was not affected, but the flag register VF would be set to the bit that was shifted out.
+       */
 
-    uint8_t x;
+    uint8_t x, y, lsb;
 
     x = (opcode & 0x0F00) >> 8;
-    p->V[0xF] = p->V[x] & 0x01;
+    y = (opcode & 0x00F0) >> 4;
+    p->V[x] = p->V[y];
+    lsb = p->V[x] & 0x01;
     p->V[x] = p->V[x] >> 1;
+    p->V[0xF] = lsb;
 }
 
 void
@@ -309,15 +339,16 @@ op_8xy7(struct chip8 *p, uint16_t opcode)
 {
     /* 8xy7 - SUBN Vx, Vy 
        Set Vx = Vy - Vx, set VF = NOT borrow. 
-       If Vy > Vx, then VF is set to 1, otherwise 0. 
+       If Vy >= Vx, then VF is set to 1, otherwise 0. 
        Then Vx is subtracted from Vy, and the results stored in Vx. */
 
-    uint8_t x, y;
+    uint8_t x, y, not_borrow;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
-    p->V[0xF] = p->V[y] > p->V[x] ? 1 : 0;
+    not_borrow = p->V[y] >= p->V[x] ? 1 : 0;;
     p->V[x] = p->V[y] - p->V[x];
+    p->V[0xF] = not_borrow;
 }
 
 void
@@ -326,13 +357,22 @@ op_8xyE(struct chip8 *p, uint16_t opcode)
     /* 8xyE - SHL Vx {, Vy} 
        Set Vx = Vx SHL 1. 
        If the most-significant bit of Vx is 1, then VF is set to 1, 
-       otherwise to 0. Then Vx is multiplied by 2. */
+       otherwise to 0. Then Vx is multiplied by 2. 
 
-    uint8_t x;
+       From https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#8xy6-and-8xye-shift
+       In the CHIP-8 interpreter for the original COSMAC VIP, this instruction did the following:
+       It put the value of VY into VX, and then shifted the value in VX 1 bit to the right (8XY6) 
+       or left (8XYE). VY was not affected, but the flag register VF would be set to the bit that was shifted out.
+       */
+
+    uint8_t x, y, msb;
 
     x = (opcode & 0x0F00) >> 8;
-    p->V[0xF] = (p->V[x] & 0x80) >> 7;
+    y = (opcode & 0x00F0) >> 4;
+    p->V[x] = p->V[y];
+    msb = (p->V[x] & 0x80) >> 7;
     p->V[x] = p->V[x] << 1;
+    p->V[0xF] = msb;
 }
 
 void
@@ -409,30 +449,33 @@ op_Dxyn(struct chip8 *p, uint16_t opcode)
        more information on XOR, and section 2.4, Display, for more information 
        on the Chip-8 screen and sprites. */
 
-    uint8_t x, y, n, i, b, row, col, mask, sprite_chunk, sprite_bit;
+    uint8_t x, y, n, r, c, i, b, start_row, start_col, end_row, end_col, mask, sprite_chunk, sprite_bit, collision;
 
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
     n = (opcode & 0x000F);
-    p->V[0xF] = 0;
-    /* Each sprite is 8 pixels wide */
-    /* for each byte (row) in the sprite */
-    for(i=0; i<n; i++)
+    collision = 0;
+    /* starting poistions wrap, but the drawing does not*/
+    start_row = p->V[y] % CHIP8_SCREEN_HEIGHT;
+    start_col = p->V[x] % CHIP8_SCREEN_WIDTH;
+    end_row = start_row + n < CHIP8_SCREEN_HEIGHT ?  start_row + n : CHIP8_SCREEN_HEIGHT;
+    end_col = start_col + 8 < CHIP8_SCREEN_WIDTH  ?  start_col + 8 : CHIP8_SCREEN_WIDTH;
+    
+    for(r=start_row, i=0; r<end_row; r++, i++)
     {
-        row = (p->V[y] + i) % CHIP8_SCREEN_HEIGHT;
-        for(b=0; b<8; b++)
+        sprite_chunk = p->mem[p->I + i];
+        for(c=start_col, b=0; c<end_col; c++, b++)
         {
-            col = (p->V[x] + b) % CHIP8_SCREEN_WIDTH;
-            sprite_chunk = p->mem[p->I + i];
             mask = 0x80 >> b;
             sprite_bit = (sprite_chunk & mask) > 0 ? 1 : 0;
-            if (p->chip8_io.fbuff[col + row * CHIP8_SCREEN_WIDTH] && sprite_bit)
+            if (p->chip8_io.fbuff[c + r * CHIP8_SCREEN_WIDTH] && sprite_bit)
             {
-                p->V[0xF] = 1;
+                collision = 1;
             }
-            p->chip8_io.fbuff[col + row * CHIP8_SCREEN_WIDTH] ^= sprite_bit;
+            p->chip8_io.fbuff[c + r * CHIP8_SCREEN_WIDTH] ^= sprite_bit;
         }
     }
+    p->V[0xF] = collision;
     p->chip8_io.update_display = 1;
 }
 
@@ -609,14 +652,20 @@ op_Fx55(struct chip8 *p, uint16_t opcode)
     /* Fx55 - LD [I], Vx
        Store registers V0 through Vx in memory starting at location I.
        The interpreter copies the values of registers V0 through Vx into memory,
-       starting at the address in I. */
+       starting at the address in I.
+       
+       https://www.laurencescotford.net/2020/07/19/chip-8-on-the-cosmac-vip-loading-and-saving-variables/
+       https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#fx55-and-fx65-store-and-load-memory
+       https://github.com/Timendus/chip8-test-suite
+       The links above  indicate p->I should be incremented by the function call
+       */
 
     uint8_t x, n;
 
     x = (opcode & 0x0F00) >> 8;
-    for(n=0; n<x+1; n++)
+    for(n=0; n<x+1; n++, p->I++)
     {
-        p->mem[p->I + n] = p->V[n];
+        p->mem[p->I] = p->V[n];
     }
 }
 
@@ -626,14 +675,20 @@ op_Fx65(struct chip8 *p, uint16_t opcode)
     /* Fx65 - LD Vx, [I]
        Read registers V0 through Vx from memory starting at location I.
        The interpreter reads values from memory starting at location I into 
-       registers V0 through Vx. */
+       registers V0 through Vx. 
+       
+       https://www.laurencescotford.net/2020/07/19/chip-8-on-the-cosmac-vip-loading-and-saving-variables/
+       https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#fx55-and-fx65-store-and-load-memory
+       https://github.com/Timendus/chip8-test-suite
+       The links above  indicate p->I should be incremented by the function call
+    */
 
     uint8_t x, n;
 
     x = (opcode & 0x0F00) >> 8;
-    for(n=0; n<x+1; n++)
+    for(n=0; n<x+1; n++, p->I++)
     {
-        p->V[n] = p->mem[p->I + n];
+        p->V[n] = p->mem[p->I];
     }
 }
 

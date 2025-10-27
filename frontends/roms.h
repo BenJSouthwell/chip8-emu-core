@@ -24,7 +24,7 @@ read_rom(const char * path)
     long    numbytes;
     struct rom * r;
 
-    infile = fopen(path, "r");
+    infile = fopen(path, "rb");
  
     if(infile == NULL)
     {
@@ -37,13 +37,24 @@ read_rom(const char * path)
 
     if (numbytes > MAX_ROM_SIZE)
     {
-        fprintf(stderr, "%s is %ld, maximum size is MAX_ROM_SIZE\n", path, numbytes);
+        fprintf(stderr, "%s is %ld bytes, maximum size is %d\n", path, numbytes, MAX_ROM_SIZE);
+        fclose(infile);
+        return NULL;
     }
 
     fseek(infile, 0L, SEEK_SET);
 
     r = malloc(sizeof(struct rom));
+    if (r == NULL) {
+        fclose(infile);
+        return NULL;
+    }
     r->data = malloc(numbytes);
+    if (r->data == NULL) {
+        free(r);
+        fclose(infile);
+        return NULL;
+    }
     r->num_bytes = numbytes;
 
     fread(r->data, sizeof(uint8_t), numbytes, infile);

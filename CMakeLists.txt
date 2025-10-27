@@ -23,6 +23,8 @@ else()
     target_compile_options(chip8emu_lib PRIVATE -Wall -Wextra -Wstrict-prototypes -pedantic -Werror)
 endif()
 
+add_library(chip8emu::chip8emu_lib ALIAS chip8emu_lib)
+
 
 if(BUILD_FRONTEND)
     include(FetchContent)
@@ -34,7 +36,7 @@ if(BUILD_FRONTEND)
     )
     FetchContent_MakeAvailable(SDL2)
     add_executable(chip8emu_sdl frontends/main.c)
-    target_link_libraries(chip8emu_sdl PRIVATE chip8emu_lib SDL2::SDL2 SDL2::SDL2main)
+    target_link_libraries(chip8emu_sdl PRIVATE chip8emu::chip8emu_lib SDL2::SDL2 SDL2::SDL2main)
     # SDL requires C99, compile the frontend with that
     set_property(TARGET chip8emu_sdl PROPERTY C_STANDARD 99)
 endif()

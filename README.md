@@ -47,14 +47,23 @@ Replace `../roms/snek.ch8` with the path to any CHIP-8 ROM you want to run.
 
 Note: The frontend is only built when the `BUILD_FRONTEND` option is enabled during the CMake configuration step.
 
-To control the emulator, use the following keys:
-- CHIP-8 Keypad:
-  - 1 2 3 C
-  - 4 5 6 D
-  - 7 8 9 E
-  - A 0 B F
-- ESC: Quit Emulator
-- +/- : Increase/Decrease CPU clock rate
+To quit the emulator, press the `ESC` key.
+To change the CPU clock rate, use the `+` and `-` keys.
+The original CHIP-8 keypad physical layout is as follows:
+```
+1 2 3 C
+4 5 6 D
+7 8 9 E
+A 0 B F
+```
+On QWERTY keyboards we perform the following mapping (QWERTY on the left, CHIP-8 on the right) in the SDL frontend:
+```
+1 2 3 4  -> 1 2 3 C
+Q W E R  -> 4 5 6 D
+A S D F  -> 7 8 9 E
+Z X C V  -> A 0 B F
+```
+
 ### ROMs
 There are some example CHIP-8 ROMs you can use to test the emulator located in the `/chip8-emu-core/roms/` directory. These are public domain ROMs sourced from [here](https://johnearnest.github.io/chip8Archive/?sort=platform#chip8) released under the [creative commons zero](https://creativecommons.org/public-domain/cc0/) license.
 
@@ -112,22 +121,7 @@ struct chip8_io
 ```
 The `keypad_state` array is used to set the state of the 16 keys on the CHIP-8 keypad. The `fbuff` array contains the current state of the framebuffer, which is 64x32 pixels. Each pixel is represented as a byte, where 0 is off and 1 is on. The `update_display` flag is set to 1 when the display needs to be updated, and the `buzzer_active` flag is set to 1 when the buzzer should be active.
 
-### CHIP-8 keypad (logical)
-The original CHIP-8 keypad physical layout is as follows:
-```
-1 2 3 C
-4 5 6 D
-7 8 9 E
-A 0 B F
-```
 
-On QWERTY keyboards we perform the following mapping (QWERTY on the left, CHIP-8 on the right):
-```
-1 2 3 4  -> 1 2 3 C
-Q W E R  -> 4 5 6 D
-A S D F  -> 7 8 9 E
-Z X C V  -> A 0 B F
-```
 
 ### chip8_clock Rates
 These are the valid enums you can use to initialize the emulator with different clock rates or change the clock rate at runtime. The values are just the clock rate divided by 60. This is used internally as a clock divider to run the delay and sound timers at 60Hz. The caller is responsible for calling `execute_cycle_chip8` the appropriate number of times per second to achieve the promised clock rate.

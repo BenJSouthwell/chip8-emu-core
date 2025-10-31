@@ -2,7 +2,8 @@
 #define CHIP8_INSTR_H
 
 #include <stdint.h>
-#include "chip8_priv.h"
+
+struct chip8;
 
 void 
 op_0ZZZ(struct chip8 *p, uint16_t opcode);

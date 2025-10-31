@@ -7,8 +7,8 @@ The API required to integrate the CHIP8 emulator into an app
 
 #include <stdint.h>
 
-#include "chip8.h"
-#include "prng.h"
+struct chip8_io;
+struct lfsr_prng;
 
 #define CHIP8_MEM_SIZE_BYTES (4096)
 #define PROGRAM_START_ADDRESS (0x200)
@@ -33,7 +33,7 @@ struct chip8
     char waiting_for_key;                   /* execution of the program is halted */
     uint8_t            key_x;               /**/
     /* externally accessible IO (frambuffer, buzzer, keypad etc) */
-    struct chip8_io chip8_io;
+    struct chip8_io * chip8_io;
 };
 
 #endif /* CHIP8_PRIV_H */

@@ -5,6 +5,7 @@
 #include "chip8.h"
 #include "chip8_priv.h"
 #include "fonts.h"
+#include "prng.h"
 #include "instructions.h"
  
 struct chip8 *
@@ -18,8 +19,10 @@ initialise_chip8(enum chip8_clock clock)
     }
     /* initialise the program counter to the start address */
     p->pc = PROGRAM_START_ADDRESS;
-    p->chip8_io.buzzer_active = 0;
-    p->chip8_io.update_display = 0;
+    /* initialise the io struct */
+    p->chip8_io = calloc(1, sizeof(struct chip8_io));
+    p->chip8_io->buzzer_active = 0;
+    p->chip8_io->update_display = 0;
     /* the value of the clock enum is the timer clock divider */
     p->timer_clock_div = clock;
     /* copy font into memory */
@@ -36,7 +39,7 @@ get_io_chip8(struct chip8 *p)
     {
         return NULL;
     }
-    return &p->chip8_io;
+    return p->chip8_io;
 }
 
 int 
@@ -78,11 +81,11 @@ update_timers(struct chip8 *p)
     if(p->sound_timer > 0)
     {
         p->sound_timer --;
-        p->chip8_io.buzzer_active = 1;
+        p->chip8_io->buzzer_active = 1;
     }
     else
     {
-        p->chip8_io.buzzer_active = 0;
+        p->chip8_io->buzzer_active = 0;
     }
     if(p->delay_timer > 0)
     {
@@ -102,14 +105,14 @@ execute_cycle_chip8(struct chip8 *p)
         return;
     }
 
-    p->chip8_io.update_display = 0;
+    p->chip8_io->update_display = 0;
 
     if(p->waiting_for_key == 1)
     {
         /* check to see if there is a key press */
         for (n=0; n<16; n++)
         {
-            if(p->chip8_io.keypad_state[n] == 1)
+            if(p->chip8_io->keypad_state[n] == 1)
             {
                 p->V[p->key_x] = n;
                 p->waiting_for_key = 0;
@@ -157,6 +160,7 @@ void
 free_chip8(struct chip8 * p)
 {
     free_lfsr_prng(p->prng);
+    free(p->chip8_io);
     free(p);
     return;
 }

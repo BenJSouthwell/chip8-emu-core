@@ -4,6 +4,7 @@
 
 #include "instructions.h"
 #include "chip8_priv.h"
+#include "chip8.h"
 
 /*
 Instruction descriptions are taken from Cowgod's
@@ -55,8 +56,8 @@ op_0ZZZ(struct chip8 *p, uint16_t opcode)
     if (op8 == 0x00E0)
     {
         /* Clear the display */
-        memset(p->chip8_io.fbuff, 0, CHIP8_SCREEN_HEIGHT * CHIP8_SCREEN_WIDTH * sizeof(uint8_t));
-        p->chip8_io.update_display = 1;
+        memset(p->chip8_io->fbuff, 0, CHIP8_SCREEN_HEIGHT * CHIP8_SCREEN_WIDTH * sizeof(uint8_t));
+        p->chip8_io->update_display = 1;
     }
     else if (op8 == 0x00EE)
     {
@@ -468,15 +469,15 @@ op_Dxyn(struct chip8 *p, uint16_t opcode)
         {
             mask = 0x80 >> b;
             sprite_bit = (sprite_chunk & mask) > 0 ? 1 : 0;
-            if (p->chip8_io.fbuff[c + r * CHIP8_SCREEN_WIDTH] && sprite_bit)
+            if (p->chip8_io->fbuff[c + r * CHIP8_SCREEN_WIDTH] && sprite_bit)
             {
                 collision = 1;
             }
-            p->chip8_io.fbuff[c + r * CHIP8_SCREEN_WIDTH] ^= sprite_bit;
+            p->chip8_io->fbuff[c + r * CHIP8_SCREEN_WIDTH] ^= sprite_bit;
         }
     }
     p->V[0xF] = collision;
-    p->chip8_io.update_display = 1;
+    p->chip8_io->update_display = 1;
 }
 
 
@@ -501,14 +502,14 @@ op_EZZZ(struct chip8 *p, uint16_t opcode)
     /* only two subcodes, no need for a table */
     if(subcode == 0x9E)
     {
-        if (p->chip8_io.keypad_state[p->V[x]] >= 1)
+        if (p->chip8_io->keypad_state[p->V[x]] >= 1)
         {
             p->pc += 2;
         }
     }
     else if (subcode == 0xA1)
     {
-        if (p->chip8_io.keypad_state[p->V[x]] == 0)
+        if (p->chip8_io->keypad_state[p->V[x]] == 0)
         {
             p->pc += 2;
         }
